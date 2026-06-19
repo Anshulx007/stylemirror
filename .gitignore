@@ -1,0 +1,40 @@
+# Python Virtual Environment
+backend/venv/
+backend/.venv/
+
+# Node Modules and Build Output
+frontend/node_modules/
+frontend/dist/
+
+# Uploads directory (photos)
+uploads/**/*.jpg
+uploads/**/*.png
+uploads/**/*.jpeg
+uploads/originals/
+uploads/processed/
+uploads/temp/
+
+# SQLite Database
+*.db
+stylemirror.db
+
+# Environment variables
+.env
+backend/.env
+frontend/.env
+*.local
+
+# Logs and system caches
+*.log
+backend/uvicorn.err.log
+backend/uvicorn.out.log
+.system_generated/
+__pycache__/
+**/__pycache__/
+.pytest_cache/
+.eslintcache
+.DS_Store
+
+# IDEs
+.vscode/
+.idea/
