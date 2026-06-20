@@ -1,0 +1,9 @@
+# CLIP Semantic Adherence Ratings
+
+| Sample | CLIP |
+| --- | --- |
+| Sample 1 | 0.88 |
+| Sample 2 | 0.84 |
+| Sample 3 | 0.86 |
+| Sample 4 | 0.89 |
+| Sample 5 | 0.83 |
