@@ -6,7 +6,7 @@ WORKDIR /app
 COPY frontend/package*.json ./
 RUN npm install
 
-# Build static bundle
+# Build static bundle (includes persisted stores and report layout in Phase 5)
 COPY frontend/ .
 RUN npm run build
 

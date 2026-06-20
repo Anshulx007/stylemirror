@@ -18,6 +18,10 @@ uploads/temp/
 *.db
 stylemirror.db
 
+# Generated reports
+backend/reports/pdf/
+backend/reports/csv/
+
 # Environment variables
 .env
 backend/.env

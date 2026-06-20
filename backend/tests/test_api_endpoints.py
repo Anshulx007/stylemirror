@@ -68,6 +68,20 @@ def test_full_pipeline():
     assert "makeover_url" in makeover_data
     print(f"[Test] Makeover successful. Makeover URL: {makeover_data['makeover_url']}")
 
+    # 4. Test report data and PDF generation endpoints
+    response = client.get(f"/api/v1/report/data/{image_id}")
+    assert response.status_code == 200, f"Report data failed: {response.text}"
+    report_data = response.json()
+    assert report_data["image_id"] == image_id
+    assert "face_shape" in report_data
+    assert "outfit" in report_data
+    print(f"[Test] Report JSON successful. Face shape: {report_data['face_shape']}")
+
+    response = client.get(f"/api/v1/report/pdf/{image_id}")
+    assert response.status_code == 200, f"Report PDF failed: {response.text}"
+    assert response.headers["content-type"] == "application/pdf"
+    print(f"[Test] Report PDF generation and stream successful. Size: {len(response.content)} bytes")
+
 if __name__ == "__main__":
     test_full_pipeline()
 
