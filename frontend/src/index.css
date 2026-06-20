@@ -1,8 +1,80 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap');
-
 @import "tailwindcss";
 
 @theme {
   --font-display: "Playfair Display", serif;
-  --font-body: "Inter", sans-serif;
+  --font-body: "Hanken Grotesk", sans-serif;
+  --color-accent-violet: #7C3AED;
+  --color-accent-gold: #D4AF37;
+  --color-surface-dim: #141414;
+  --color-border-hairline: #262626;
+}
+
+@layer base {
+  * {
+    border-radius: 0px !important;
+  }
+  
+  body {
+    background-color: #0A0A0A;
+    color: #F5F5F0;
+    font-family: 'Hanken Grotesk', sans-serif;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Custom input styling for preferences bottom borders */
+  input[type="text"], input[type="number"], select {
+    border-radius: 0px !important;
+  }
+}
+
+@layer utilities {
+  .hairline-border {
+    border: 1px solid #262626;
+  }
+  
+  .hairline-border-b {
+    border-bottom: 1px solid #262626;
+  }
+  
+  .hairline-border-t {
+    border-top: 1px solid #262626;
+  }
+
+  .text-antique-gold {
+    color: #D4AF37;
+  }
+
+  .border-antique-gold {
+    border-color: #D4AF37;
+  }
+
+  .accent-violet {
+    color: #7C3AED;
+  }
+
+  .bg-violet {
+    background-color: #7C3AED;
+  }
+
+  .sharp-edge {
+    border-radius: 0px !important;
+  }
+
+  .hover-lift {
+    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .hover-lift:hover {
+    transform: translateY(-4px);
+  }
+
+  .img-hover-container img {
+    opacity: 0.95;
+    transition: opacity 0.3s ease;
+  }
+
+  .img-hover-container:hover img {
+    opacity: 1;
+  }
 }

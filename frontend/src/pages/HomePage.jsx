@@ -1,47 +1,70 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import PageWrapper from '../components/layout/PageWrapper';
-import FeatureCard from '../components/FeatureCard';
-import { Sparkles, Scan, MessageSquare, Compass, Play, BarChart2 } from 'lucide-react';
+import ShaderBackground from '../components/ShaderBackground';
 
 const HomePage = () => {
   const navigate = useNavigate();
 
-  const features = [
-    { title: 'AI Face & Skin Analysis', description: 'Analyzes your facial structure and skin tones to map your optimal style coordinates.', icon: Scan },
-    { title: 'FastAPI Backend', description: 'Modularized recommendations running high-speed analysis in milliseconds.', icon: BarChart2 },
-    { title: 'Interactive Style Chat', description: 'Chat with StyleMirror AI to query coordinates, occasion ideas, or fit adjustments.', icon: MessageSquare },
-  ];
-
   return (
     <PageWrapper>
-      <div className="flex flex-col items-center text-center py-12 gap-8">
-        <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#8B5CF6]/10 border border-[#8B5CF6]/20 rounded-full text-xs font-bold text-[#8B5CF6] uppercase tracking-wider animate-pulse">
-          <Sparkles className="w-3.5 h-3.5" />
-          <span>Research Grade MVP v0.1.0</span>
-        </div>
-        
-        <h1 className="text-5xl md:text-6xl font-extrabold tracking-tight text-white font-display max-w-3xl leading-tight">
-          See yourself in <span className="bg-gradient-to-r from-[#8B5CF6] to-[#F59E0B] bg-clip-text text-transparent">style coordinates</span>
-        </h1>
-        
-        <p className="text-[#9CA3AF] text-lg max-w-xl leading-relaxed">
-          Upload a portrait and receive personalized recommendations for outfit tops, bottoms, hairstyles, accessories, and colors.
-        </p>
-        
-        <button 
-          onClick={() => navigate('/upload')}
-          className="flex items-center gap-2 px-8 py-4 bg-[#8B5CF6] hover:bg-[#7C3AED] text-white rounded-2xl font-bold transition-all duration-300 shadow-[0_8px_30px_rgba(139,92,246,0.3)] hover:scale-105"
-        >
-          <Play className="w-5 h-5 fill-current" />
-          <span>Get Started</span>
-        </button>
-      </div>
+      {/* WebGL Ambient Shader behind homepage */}
+      <ShaderBackground className="absolute inset-0 z-0 opacity-40 mix-blend-screen pointer-events-none" />
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
-        {features.map((f) => (
-          <FeatureCard key={f.title} {...f} />
-        ))}
+      <div className="relative z-10 flex-grow flex flex-col items-center justify-center py-12 md:py-24 max-w-4xl mx-auto w-full">
+        
+        {/* Editorial Sub-badge */}
+        <div className="inline-flex items-center gap-2 border border-[#D4AF37] px-4 py-1.5 rounded-full mb-8">
+          <span className="material-symbols-outlined text-[14px] text-[#D4AF37]">verified</span>
+          <span className="font-eyebrow-sm text-xs uppercase tracking-widest text-[#D4AF37]">Digital Atelier MVP</span>
+        </div>
+
+        {/* Masthead Header */}
+        <h1 className="font-display text-4xl md:text-7xl text-[#F5F5F0] text-center mb-6 leading-[1.1] tracking-tight">
+          See yourself in <br />
+          <span className="text-[#D4AF37] italic"> bespoke coordinates</span>
+        </h1>
+
+        {/* Intro Body */}
+        <p className="font-body-md text-base text-[#9CA3AF] max-w-xl text-center mb-12 leading-relaxed">
+          Upload a portrait and receive personalized recommendations for outfit sets, hairstyles, accessories, and colors, verified by automated identity metrics.
+        </p>
+
+        {/* Snappy Primary CTA Button */}
+        <button
+          onClick={() => navigate('/upload')}
+          className="font-eyebrow-sm text-sm uppercase tracking-widest text-[#0A0A0A] bg-[#F5F5F0] px-8 py-4 border border-[#F5F5F0] hover:bg-[#0A0A0A] hover:text-[#F5F5F0] transition-colors duration-150 active:scale-95 flex items-center gap-2 font-bold"
+          style={{ borderRadius: '0px' }}
+        >
+          <span>Start Your Transform</span>
+          <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+        </button>
+
+        {/* Editorial Trust Columns */}
+        <div className="w-full mt-24 grid grid-cols-1 md:grid-cols-3 gap-8 border-t border-[#262626] pt-12">
+          <div className="flex flex-col items-center text-center gap-3">
+            <span className="material-symbols-outlined text-[24px] text-[#7C3AED]">lock</span>
+            <div>
+              <h4 className="font-eyebrow-sm text-xs uppercase tracking-widest text-white mb-1">Identity Preserved</h4>
+              <p className="text-xs text-[#9CA3AF]">Core face geometry and skin tone remains unaltered</p>
+            </div>
+          </div>
+          <div className="flex flex-col items-center text-center gap-3">
+            <span className="material-symbols-outlined text-[24px] text-[#7C3AED]">delete</span>
+            <div>
+              <h4 className="font-eyebrow-sm text-xs uppercase tracking-widest text-white mb-1">24h Autodelete</h4>
+              <p className="text-xs text-[#9CA3AF]">Your original uploaded photo is stored safely and wiped</p>
+            </div>
+          </div>
+          <div className="flex flex-col items-center text-center gap-3">
+            <span className="material-symbols-outlined text-[24px] text-[#7C3AED]">query_stats</span>
+            <div>
+              <h4 className="font-eyebrow-sm text-xs uppercase tracking-widest text-white mb-1">Benchmarked Suite</h4>
+              <p className="text-xs text-[#9CA3AF]">ArcFace, CLIP, and LPIPS verification feedback</p>
+            </div>
+          </div>
+        </div>
+
       </div>
     </PageWrapper>
   );

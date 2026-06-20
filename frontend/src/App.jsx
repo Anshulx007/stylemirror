@@ -5,6 +5,7 @@ import HomePage from './pages/HomePage';
 import UploadPage from './pages/UploadPage';
 import PreferencesPage from './pages/PreferencesPage';
 import RecommendationsPage from './pages/RecommendationsPage';
+import MakeoverPage from './pages/MakeoverPage';
 import StyleReportPage from './pages/StyleReportPage';
 import FashionChatPage from './pages/FashionChatPage';
 import SavedLooksGallery from './pages/SavedLooksGallery';
@@ -20,6 +21,7 @@ function App() {
             <Route path="/upload" element={<UploadPage />} />
             <Route path="/preferences" element={<PreferencesPage />} />
             <Route path="/recommendations" element={<RecommendationsPage />} />
+            <Route path="/makeover" element={<MakeoverPage />} />
             <Route path="/report" element={<StyleReportPage />} />
             <Route path="/chat" element={<FashionChatPage />} />
             <Route path="/gallery" element={<SavedLooksGallery />} />

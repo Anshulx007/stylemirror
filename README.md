@@ -25,6 +25,7 @@ Our closed-loop pipeline analyzes user portraits, generates customized visual st
 | Feature | Description |
 |---|---|
 | 🔒 Identity-Preserving Makeover | Face shape and skin tone grounded in generation prompts; only fashion elements modified |
+| 🔮 Virtual Makeover Page | Interactive draggable before/after slider comparison of the generated makeover |
 | 👗 Fashion Recommendation Engine | Personalized styling suggestions (tops, bottoms, footwear) |
 | 💇 Hairstyle & Accessories | Occasion-optimized hairstyles and accessories (glasses shape, watch metal) |
 | 🎨 Color Palette Planner | Color coordinates to wear and avoid based on skin tone K-Means |
@@ -32,6 +33,7 @@ Our closed-loop pipeline analyzes user portraits, generates customized visual st
 | 💬 Style Chat Assistant | Context-aware styling chatbot |
 | 📄 Styling Report | Downloadable PDF styling coordinates summary report |
 | 🧪 Metrics & Benchmarking | ArcFace, CLIP, LPIPS metrics runner and ablation study suite |
+| 🌌 WebGL Scanning Light Beam | Ambient background scanning animation behind high-fidelity processing screens |
 
 ---
 
@@ -41,6 +43,7 @@ Our closed-loop pipeline analyzes user portraits, generates customized visual st
 * **React (Vite)** — Single page application architecture
 * **Tailwind CSS v4** — High-performance utility styles
 * **Framer Motion** — Smooth animations and entrance transitions
+* **WebGL Shaders** — Dynamic background scanning animations
 * **Zustand** — Persistent state management (`localStorage`)
 * **Axios** — API layer with exponential-backoff retry interceptors
 
@@ -63,8 +66,8 @@ Our closed-loop pipeline analyzes user portraits, generates customized visual st
 stylemirror/
 ├── frontend/                  # React + Vite Client
 │   ├── src/
-│   │   ├── pages/             # Pages (Home, Upload, Preferences, Recommendations, Report, Chat)
-│   │   ├── components/        # UI Components (Navbar, ImageUploader, Cards, Spinner)
+│   │   ├── pages/             # Pages (Home, Upload, Preferences, Recommendations, Makeover, Report, Chat)
+│   │   ├── components/        # UI Components (Navbar, ImageUploader, BeforeAfterSlider, ShaderBackground, Cards, Spinner)
 │   │   ├── services/          # Axios Client (api.js) with Retry Interceptors
 │   │   └── store/             # Zustand Stores (App, Image, Recommendation, Chat, Report)
 │   └── vite.config.js         # Vite Tailwind Config

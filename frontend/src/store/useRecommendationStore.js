@@ -13,6 +13,9 @@ export const useRecommendationStore = create(
       makeup: null,
       loading: false,
       recommendationId: null,
+      occasion: null,
+      season: null,
+      budget: null,
       
       getRecommendations: async (payload) => {
         set({ loading: true });
@@ -25,6 +28,9 @@ export const useRecommendationStore = create(
             palette: data.palette,
             makeup: data.makeup,
             recommendationId: data.recommendation_id,
+            occasion: payload.occasion,
+            season: payload.season,
+            budget: payload.budget,
           });
           return data;
         } catch (err) {
@@ -44,6 +50,9 @@ export const useRecommendationStore = create(
         palette: null,
         makeup: null,
         recommendationId: null,
+        occasion: null,
+        season: null,
+        budget: null,
       }),
     }),
     {
@@ -55,6 +64,9 @@ export const useRecommendationStore = create(
         palette: state.palette,
         makeup: state.makeup,
         recommendationId: state.recommendationId,
+        occasion: state.occasion,
+        season: state.season,
+        budget: state.budget,
       }),
     }
   )

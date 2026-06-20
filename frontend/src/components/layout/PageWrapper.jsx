@@ -56,13 +56,14 @@ const PageWrapper = ({ children }) => {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             transition={{ duration: 0.3, ease: 'easeOut' }}
-            className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 px-5 py-4 rounded-2xl border backdrop-blur-md shadow-2xl max-w-sm ${toastConfig.classes}`}
+            className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 px-5 py-4 border backdrop-blur-md max-w-sm ${toastConfig.classes}`}
+            style={{ borderRadius: '0px' }}
           >
             <div className="flex-shrink-0">{toastConfig.icon}</div>
             <div className="flex-grow text-sm font-medium">{toast.message}</div>
             <button
               onClick={hideToast}
-              className="flex-shrink-0 p-1 hover:bg-white/10 rounded-full transition-colors"
+              className="flex-shrink-0 p-1 hover:bg-white/10 transition-colors"
             >
               <X className="w-4 h-4 opacity-70 hover:opacity-100" />
             </button>

@@ -9,7 +9,7 @@
 ┌─────────────────────────────────────────────────────────────────────┐
 │                          USER BROWSER                               │
 │                       React + Vite (SPA)                            │
-│   Pages: Home │ Upload │ Preferences │ Recommendations │ Report │ Chat│
+│   Pages: Home │ Upload │ Preferences │ Recommendations │ Makeover │ Report │ Chat│
 └────────────────────────────┬────────────────────────────────────────┘
                              │ HTTPS REST (Axios with Retries)
                              ▼
@@ -206,6 +206,7 @@ App (React Router v6)
 ├── /upload                    → UploadPage
 ├── /preferences               → PreferencesPage
 ├── /recommendations           → RecommendationsPage
+├── /makeover                  → MakeoverPage
 ├── /report                    → StyleReportPage
 ├── /chat                      → FashionChatPage
 └── /gallery                   → SavedLooksGallery (Placeholder)
