@@ -40,8 +40,8 @@ def analyze_user_study(responses: list) -> dict:
         summary[metric] = {
             "mean": round(mean, 2),
             "std": round(std, 2),
-            "margin_of_error": round(margin, 2),
-            "confidence_interval": (round(lower_bound, 2), round(upper_bound, 2))
+            "margin_of_error": round(float(margin), 2),
+            "confidence_interval": (round(float(lower_bound), 2), round(float(upper_bound), 2))
         }
         
     return summary

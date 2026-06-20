@@ -1,5 +1,5 @@
 # ARCHITECTURE.md
-## StyleMirror AI — System Architecture
+## StyleMirror AI — System Architecture & Design Document
 
 ---
 
@@ -9,31 +9,33 @@
 ┌─────────────────────────────────────────────────────────────────────┐
 │                          USER BROWSER                               │
 │                       React + Vite (SPA)                            │
-│   Pages: Home │ Upload │ Preferences │ Makeover │ Report │ Chat     │
+│   Pages: Home │ Upload │ Preferences │ Recommendations │ Report │ Chat│
 └────────────────────────────┬────────────────────────────────────────┘
-                             │ HTTPS REST (Axios)
+                             │ HTTPS REST (Axios with Retries)
                              ▼
 ┌─────────────────────────────────────────────────────────────────────┐
 │                      FASTAPI BACKEND                                │
-│                    Python 3.11 — Port 8000                          │
+│                    Python 3.10+ — Port 8000                         │
 │                                                                     │
-│  /api/analyze     /api/recommend   /api/makeover   /api/chat       │
-│  /api/score       /api/palette     /api/save       /api/history    │
+│  /api/v1/analyze             /api/v1/recommend                      │
+│  /api/v1/makeover            /api/v1/chat                           │
+│  /api/v1/report/data/{id}    /api/v1/report/pdf/{id}                │
+│  /api/v1/camera/capture                                             │
 └──────────┬─────────────────┬──────────────────┬────────────────────┘
            │                 │                  │
      ┌─────▼──────┐   ┌──────▼──────┐   ┌──────▼──────────┐
      │ AI PIPELINE│   │  DB LAYER   │   │  IMAGE STORAGE  │
-     │  Modules   │   │  SQLite /   │   │  AWS S3 /       │
-     │            │   │  PostgreSQL │   │  Local FS       │
+     │  Modules   │   │  SQLite /   │   │  Local FS       │
+     │            │   │  SQLAlchemy │   │  /uploads/      │
      └─────┬──────┘   └─────────────┘   └─────────────────┘
            │
      ┌─────▼──────────────────────────────────────────────┐
      │               EXTERNAL AI SERVICES                 │
      │                                                    │
-     │  OpenAI GPT-4o ──── Fashion recs + Chat            │
-     │  Gemini Vision ──── Image analysis                 │
-     │  DALL-E 3 / SD ──── Makeover image generation      │
-     │  MediaPipe ─────── Face mesh (local, no API cost) │
+     │  OpenAI GPT-4o ──── Fashion recommendations        │
+     │  Gemini Flash ───── Aesthetic analysis + Chat       │
+     │  Imagen 3 ───────── Makeover image generation      │
+     │  MediaPipe ──────── Face mesh (local geometry)     │
      └────────────────────────────────────────────────────┘
 ```
 
@@ -41,318 +43,206 @@
 
 ## 2. AI Pipeline — Detailed Flow
 
+The StyleMirror AI system operates through six core pipeline stages:
+
 ```
-USER UPLOADS IMAGE
+USER UPLOADS PORTRAIT
        │
        ▼
 ┌──────────────────────────────────────────────────┐
 │  STAGE 1: FACE ANALYSIS (Local — MediaPipe)      │
-│                                                  │
-│  • Face detection (bounding box)                 │
-│  • 468-point face mesh landmarks                 │
-│  • Face shape classification                     │
-│    (Oval / Round / Square / Heart / Diamond)     │
-│  • Skin tone extraction (KMeans on cheek region) │
+│  • Face detection and 468-point face mesh        │
+│  • Face shape classification (Oval, Round, etc.) │
 │  • Hair type estimation (texture + color)        │
-│  • Gender presentation inference                 │
 │  Output: face_data JSON                          │
 └──────────────────┬───────────────────────────────┘
                    │
                    ▼
 ┌──────────────────────────────────────────────────┐
 │  STAGE 2: STYLE ANALYSIS (Gemini Vision API)     │
-│                                                  │
 │  • Current clothing style detection              │
-│  • Current fashion score (0–10)                  │
-│  • Apparent aesthetic (Casual/Formal/Sporty...)  │
-│  • Body proportion estimation                    │
-│  Output: style_analysis JSON                     │
+│  • Current fashion score (0–10 baseline)         │
+│  • Skin tone extraction (K-Means on face region) │
+│  Output: style_data JSON                         │
 └──────────────────┬───────────────────────────────┘
                    │
                    ▼
 ┌──────────────────────────────────────────────────┐
-│  STAGE 3: PREFERENCE INPUT (User Input)          │
-│                                                  │
-│  • Occasion: [College / Interview / Party / ...] │
-│  • Season:   [Summer / Winter / Monsoon]         │
-│  • Budget:   [₹1000 / ₹3000 / ₹5000 / ₹10000]  │
-│  • Style:    [Korean / Western / Traditional...] │
-│  • Colors:   [User preference]                   │
+│  STAGE 3: PREFERENCE ELICITATION (User Input)    │
+│  • Occasion (e.g. Wedding, Interview, Casual)    │
+│  • Season (Summer, Winter, Monsoon)              │
+│  • Budget (₹1000, ₹3000, ₹5000, ₹10000)          │
+│  • Style preferences & custom text input         │
 └──────────────────┬───────────────────────────────┘
                    │
                    ▼
 ┌──────────────────────────────────────────────────┐
-│  STAGE 4: RECOMMENDATION ENGINE (GPT-4o)         │
-│                                                  │
-│  Inputs: face_data + style_analysis + prefs      │
-│                                                  │
+│  STAGE 4: RECOMMENDATION ENGINE (GPT-4o/Gemini)  │
+│  Inputs: Face analysis + Style analysis + Prefs  │
 │  Generates:                                      │
-│  • Outfit recommendation (top, bottom, full)     │
-│  • Hairstyle recommendation                      │
-│  • Makeup style recommendation                   │
-│  • Accessory recommendations (3–5 items)         │
-│  • Footwear recommendation                       │
-│  • Color palette (6 recommended colors)          │
-│  • Suggested fashion score (0–10)                │
-│  • Styling explanation (2–3 paragraphs)          │
+│  • Outfit Set (Tops, Bottoms, Footwear)          │
+│  • Recommended Hairstyles                        │
+│  • Accessories (Watch, Belt, Glasses)            │
+│  • Grooming & Makeup coordinates                 │
+│  • Color Palette (Best colors vs Colors to avoid)│
 │  Output: recommendations JSON                    │
 └──────────────────┬───────────────────────────────┘
                    │
                    ▼
 ┌──────────────────────────────────────────────────┐
-│  STAGE 5: IDENTITY-PRESERVING MAKEOVER GEN       │
-│           (DALL-E 3 / Stable Diffusion img2img)  │
-│                                                  │
-│  IDENTITY ANCHOR STRATEGY:                       │
-│  1. Extract face region via MediaPipe bbox       │
-│  2. Build detailed facial description from       │
-│     landmark data (face shape, eye color, etc.)  │
-│  3. Construct inpainting mask:                   │
-│     PRESERVE = face region (eyes, nose, mouth)   │
-│     MODIFY   = hair, clothing, background        │
-│  4. Send to DALL-E with strict identity prompt:  │
-│     "Same person, same face, same [features]..." │
-│  5. Post-process: face-swap verification via     │
-│     cosine similarity of face embeddings         │
-│                                                  │
-│  Output: makeover_image_url                      │
+│  STAGE 5: MAKEOVER GENERATION                    │
+│  (Google Imagen 3 / CV2 Warm Glow Fallback)      │
+│  • Prompts conditioned on recommendations        │
+│  • Local OpenCV warm glow filter fallback        │
+│  Output: makeover_url String                     │
 └──────────────────┬───────────────────────────────┘
                    │
                    ▼
 ┌──────────────────────────────────────────────────┐
-│  STAGE 6: STYLE REPORT GENERATION               │
-│                                                  │
-│  • Before/After score comparison                 │
-│  • Personalized PDF report                       │
-│  • Color palette visualization                   │
-│  • Save to user gallery                          │
+│  STAGE 6: STYLE REPORT GENERATION (ReportLab)    │
+│  • Compiles complete coordinates report          │
+│  • Generates visual PDF saved on disk            │
+│  Output: PDF File Response                       │
 └──────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 3. Identity Preservation — Technical Strategy
+## 3. Identity Preservation & Evaluation Framework
 
-This is the **core research contribution**. Three-layered approach:
+As a research-driven project (Phase 7), verification of identity preservation is vital. We utilize a three-layered approach:
 
-### Layer 1 — Prompt Engineering (Soft Constraint)
-```
-System prompt:
-"You are generating a fashion makeover for a person.
-CRITICAL: Do NOT change any facial features.
-The output must look like the EXACT same person.
-Preserve: face shape, eye shape/color, nose structure, 
-lip shape, skin tone, facial proportions.
-Only change: hairstyle, clothing, accessories, makeup."
-```
+### Layer 1 — Natural Language Grounding
+The generation prompt is anchored using natural language extracted from the face shape and skin tone analysis (e.g. *"Same person, oval face, medium skin tone"*), prompting the generative model to align with the subject's base features.
 
-### Layer 2 — Inpainting Mask (Hard Constraint)
-```python
-# MediaPipe face mesh gives 468 landmarks
-# Build a convex hull around face landmarks
-# Create binary mask:
-#   White (255) = PRESERVE (face region)
-#   Black (0)   = MODIFY (hair, body, background)
-# Pass mask to SD inpainting / DALL-E edit endpoint
-```
+### Layer 2 — Local Fallback Mechanics
+If no API connection is available, an OpenCV-based soft warm glow filter is applied in [makeover.py](file:///c:/Users/hp/mirrorai/backend/ai/makeover.py) to preserve 100% of facial identity while showcasing subtle style enhancements.
 
-### Layer 3 — Post-Generation Verification
-```python
-# Use face_recognition library or DeepFace
-# Compute cosine similarity of embeddings:
-#   original_face_embedding vs generated_face_embedding
-# If similarity < 0.6: regenerate or flag for review
-# This ensures identity is actually preserved
-```
+### Layer 3 — Quantitative Evaluation Loop
+The research evaluation framework in the `research/` directory runs automated checks on generated makeover outputs:
+* **Identity Preservation Score**: Cosine similarity of face embeddings in [arcface_score.py](file:///c:/Users/hp/mirrorai/backend/metrics/arcface_score.py) using InsightFace, falling back to a normalized MediaPipe landmark geometry vector distance.
+* **Style Adherence Score**: Evaluated in [clip_score.py](file:///c:/Users/hp/mirrorai/backend/metrics/clip_score.py) using CLIP ViT-B/32 or local HSV color mask and keyword matching.
+* **Perceptual Quality**: Evaluated in [lpips_score.py](file:///c:/Users/hp/mirrorai/backend/metrics/lpips_score.py) using LPIPS models or a structural similarity (SSIM) + L2 pixel distance fallback.
 
 ---
 
 ## 4. API Endpoints
 
-```
-POST   /api/v1/analyze          # Upload image, run face + style analysis
-POST   /api/v1/recommend        # Get fashion recommendations
-POST   /api/v1/makeover         # Generate identity-preserving makeover
-GET    /api/v1/score/{image_id} # Get fashion score for an image
-POST   /api/v1/chat             # Fashion assistant chat
-GET    /api/v1/palette/{image_id}# Get color palette recommendations
-POST   /api/v1/save             # Save a look to gallery
-GET    /api/v1/history          # Get saved looks
-DELETE /api/v1/history/{id}     # Delete a saved look
-GET    /api/v1/report/{id}      # Download style report
-POST   /api/v1/compare          # Compare two looks
-```
+The FastAPI endpoints are modularized in the [backend/app/api/](file:///c:/Users/hp/mirrorai/backend/app/api/) directory:
+
+| Endpoint | Method | Source File | Description |
+|---|---|---|---|
+| `/api/v1/analyze` | `POST` | [analyze.py](file:///c:/Users/hp/mirrorai/backend/app/api/analyze.py) | Uploads portrait and returns face shape, hair type, skin tone, current style, and fashion score. |
+| `/api/v1/recommend` | `POST` | [recommend.py](file:///c:/Users/hp/mirrorai/backend/app/api/recommend.py) | Takes image ID and user preferences to generate clothing and styling suggestions. |
+| `/api/v1/makeover` | `POST` | [makeover.py](file:///c:/Users/hp/mirrorai/backend/app/api/makeover.py) | Triggers Imagen 3 makeover generation or CV2 warm glow filter fallback. |
+| `/api/v1/chat` | `POST` | [chat.py](file:///c:/Users/hp/mirrorai/backend/app/api/chat.py) | Context-aware style consultant chatbot using Gemini 2.0 Flash. |
+| `/api/v1/report/data/{image_id}` | `GET` | [report.py](file:///c:/Users/hp/mirrorai/backend/app/api/report.py) | Retrieves the metadata and styling coordinates JSON. |
+| `/api/v1/report/pdf/{image_id}` | `GET` | [report.py](file:///c:/Users/hp/mirrorai/backend/app/api/report.py) | Compiles and streams the ReportLab PDF styling report. |
+| `/api/v1/camera/capture` | `POST` | [camera.py](file:///c:/Users/hp/mirrorai/backend/app/api/camera.py) | Captures frame via local webcam, runs analysis pipelines, and returns results. |
 
 ---
 
 ## 5. Database Schema
 
-```sql
--- Users (optional login, or session-based)
-CREATE TABLE sessions (
-    id          TEXT PRIMARY KEY,  -- UUID
-    created_at  DATETIME DEFAULT CURRENT_TIMESTAMP,
-    ip_hash     TEXT
-);
+The database utilizes **SQLite** for lightweight local storage. SQLAlchemy configurations are in [backend/database/](file:///c:/Users/hp/mirrorai/backend/database/).
 
--- Uploaded images
-CREATE TABLE images (
-    id          TEXT PRIMARY KEY,
-    session_id  TEXT REFERENCES sessions(id),
-    s3_url      TEXT NOT NULL,
-    face_data   JSON,          -- MediaPipe analysis result
-    style_data  JSON,          -- Gemini analysis result
-    uploaded_at DATETIME DEFAULT CURRENT_TIMESTAMP
-);
-
--- Recommendations
-CREATE TABLE recommendations (
-    id              TEXT PRIMARY KEY,
-    image_id        TEXT REFERENCES images(id),
-    occasion        TEXT,
-    season          TEXT,
-    budget          INTEGER,
-    outfit          JSON,
-    hairstyle       JSON,
-    accessories     JSON,
-    color_palette   JSON,
-    fashion_score   REAL,        -- current score
-    suggested_score REAL,        -- after makeover score
-    created_at      DATETIME DEFAULT CURRENT_TIMESTAMP
-);
-
--- Makeover results
-CREATE TABLE makeovers (
-    id                  TEXT PRIMARY KEY,
-    recommendation_id   TEXT REFERENCES recommendations(id),
-    original_url        TEXT,
-    generated_url       TEXT,
-    identity_score      REAL,   -- cosine similarity 0-1
-    created_at          DATETIME DEFAULT CURRENT_TIMESTAMP
-);
-
--- Saved looks (user gallery)
-CREATE TABLE saved_looks (
-    id              TEXT PRIMARY KEY,
-    session_id      TEXT,
-    makeover_id     TEXT REFERENCES makeovers(id),
-    label           TEXT,       -- user-given name
-    is_favourite    BOOLEAN DEFAULT FALSE,
-    saved_at        DATETIME DEFAULT CURRENT_TIMESTAMP
-);
-
--- Chat history
-CREATE TABLE chat_messages (
-    id          TEXT PRIMARY KEY,
-    session_id  TEXT,
-    role        TEXT,  -- 'user' | 'assistant'
-    content     TEXT,
-    timestamp   DATETIME DEFAULT CURRENT_TIMESTAMP
-);
+```mermaid
+erDiagram
+    images ||--o{ looks : "has looks"
+    images {
+        string id PK
+        string filename
+        string preview_url
+        json face_data
+        json style_data
+        datetime created_at
+    }
+    looks {
+        string id PK
+        string image_id FK
+        string occasion
+        string season
+        json budget
+        string style_input
+        json recommendations
+        string makeover_url
+        datetime created_at
+    }
 ```
+
+### Table Definitions
+
+1. **`images`** ([models/image.py](file:///c:/Users/hp/mirrorai/backend/database/models/image.py))
+   - `id` (String, PK): Unique UUID.
+   - `filename` (String): Saved portrait file name.
+   - `preview_url` (String): Endpoint path to serve the image.
+   - `face_data` (JSON): Facial shape classification, hair type, bounding box, and landmark descriptors.
+   - `style_data` (JSON): Extracted skin tone category, current clothing aesthetic, baseline fashion score, and feedback lists.
+   - `created_at` (DateTime): Record creation timestamp.
+
+2. **`looks`** ([models/look.py](file:///c:/Users/hp/mirrorai/backend/database/models/look.py))
+   - `id` (String, PK): Unique UUID.
+   - `image_id` (String, FK): Reference to the original image record.
+   - `occasion` (String): Target occasion (Wedding, Interview, etc.).
+   - `season` (String): Target season (Summer, Winter, Monsoon).
+   - `budget` (JSON): Budget constraints.
+   - `style_input` (String): User's custom styling notes.
+   - `recommendations` (JSON): Generated outfit details, hairstyles, accessories, makeup coordinates, and color palette suggestions.
+   - `makeover_url` (String): URL of the final generative makeover image.
+   - `created_at` (DateTime): Timestamp of recommendation.
+
+> [!NOTE]
+> Database models for users, chat histories, or report models ([user.py](file:///c:/Users/hp/mirrorai/backend/database/models/user.py), [chat_history.py](file:///c:/Users/hp/mirrorai/backend/database/models/chat_history.py), [report.py](file:///c:/Users/hp/mirrorai/backend/database/models/report.py)) exist as empty/placeholder modules reserved for future authentication and logging features.
 
 ---
 
 ## 6. Frontend Page Architecture
 
+The client single-page application is built on **React (Vite)** and routed in [App.jsx](file:///c:/Users/hp/mirrorai/frontend/src/App.jsx):
+
 ```
 App (React Router v6)
 ├── /                          → HomePage
 ├── /upload                    → UploadPage
-├── /preferences/:imageId      → PreferencesPage
-├── /makeover/:recommendId     → MakeoverPage
-├── /recommendations/:id       → RecommendationsPage
-├── /report/:id                → StyleReportPage
+├── /preferences               → PreferencesPage
+├── /recommendations           → RecommendationsPage
+├── /report                    → StyleReportPage
 ├── /chat                      → FashionChatPage
-└── /gallery                   → SavedLooksGallery
-
-Component Tree (shared):
-├── Navbar
-├── Sidebar (mobile drawer)
-├── UploadZone (drag-and-drop)
-├── FacePreview (original + overlay)
-├── MakeoverViewer (before/after slider)
-├── RecommendationCard
-├── ColorPaletteDisplay
-├── FashionScoreGauge
-├── ChatBubble
-└── LookCard (gallery item)
+└── /gallery                   → SavedLooksGallery (Placeholder)
 ```
 
 ---
 
 ## 7. State Management (Zustand)
 
-```javascript
-// Global app state
-{
-  session: {
-    id: string,
-    imageId: string | null,
-    analysisData: FaceAnalysis | null,
-    recommendationId: string | null,
-    makeoverId: string | null
-  },
-  preferences: {
-    occasion: string,
-    season: string,
-    budget: number,
-    styleInput: string,
-    colorPreferences: string[]
-  },
-  ui: {
-    isLoading: boolean,
-    currentStep: number,   // 1-6 pipeline steps
-    error: string | null
-  }
-}
-```
+Global frontend state is managed via persistent Zustand stores located in [frontend/src/store/](file:///c:/Users/hp/mirrorai/frontend/src/store/):
+
+* **`useImageStore`** ([useImageStore.js](file:///c:/Users/hp/mirrorai/frontend/src/store/useImageStore.js))
+  Manages uploaded raw images, portrait preview URLs, face shape, hair type, skin tone, current style, and baseline fashion score.
+* **`useRecommendationStore`** ([useRecommendationStore.js](file:///c:/Users/hp/mirrorai/frontend/src/store/useRecommendationStore.js))
+  Stores output from the consolidated recommend engine including outfits, hairstyles, makeup parameters, accessories, and color palette.
+* **`useAppStore`** ([useAppStore.js](file:///c:/Users/hp/mirrorai/frontend/src/store/useAppStore.js))
+  Coordinates global UI states, loader rings, and error messages.
+* **`useChatStore`** ([useChatStore.js](file:///c:/Users/hp/mirrorai/frontend/src/store/useChatStore.js))
+  Stores assistant conversations.
+* **`useReportStore`** ([useReportStore.js](file:///c:/Users/hp/mirrorai/frontend/src/store/useReportStore.js))
+  Manages styling coordinates compilation and PDF report streaming triggers.
 
 ---
 
-## 8. Deployment Architecture
+## 8. Deployment & Environment Structure
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│                    PRODUCTION                           │
+│                    DEVELOPMENT / DEMO                   │
 │                                                         │
-│  Vercel (Frontend) ──── React SPA, Edge CDN             │
-│  Railway (Backend)  ──── FastAPI, auto-scaling          │
-│  Neon / Supabase    ──── PostgreSQL                     │
-│  Cloudflare R2      ──── Image storage (S3-compatible)  │
-└─────────────────────────────────────────────────────────┘
-
-┌─────────────────────────────────────────────────────────┐
-│                    DEVELOPMENT                          │
-│                                                         │
-│  localhost:5173  ──── Vite dev server                  │
-│  localhost:8000  ──── FastAPI + uvicorn                 │
-│  SQLite file     ──── stylemirror.db                   │
-│  Local /uploads  ──── Image storage                    │
+│  localhost:5173  ──── Vite dev server (React client)   │
+│  localhost:8000  ──── FastAPI backend server            │
+│  SQLite File     ──── stylemirror.db (Root workspace)   │
+│  Local Directory ──── /backend/uploads/ (Raw images)    │
+│  Local Directory ──── /reports/pdf/ (Generated reports) │
 └─────────────────────────────────────────────────────────┘
 ```
 
----
-
-## 9. Security Considerations
-
-- Image uploads: max 10MB, MIME validation (JPEG/PNG only)
-- No user PII stored — session-based, no login required
-- API keys stored server-side only, never exposed to frontend
-- Generated makeover images watermarked with session ID
-- Face data (landmarks) deleted after session expires (24h)
-- CORS configured to frontend domain only in production
-
----
-
-## 10. Cost Estimation (Per User Session)
-
-| API Call | Model | Approx Cost |
-|---|---|---|
-| Style analysis | Gemini Vision | ~$0.001 |
-| Fashion recommendations | GPT-4o (1500 tokens) | ~$0.015 |
-| Makeover generation | DALL-E 3 (1024×1024) | ~$0.04 |
-| Chat (3 messages) | GPT-4o (500t each) | ~$0.015 |
-| **Total per session** | | **~$0.07** |
-
-At ₹5/session → viable for research demo. Production would require auth + rate limiting.
+* **Image Server**: Uploaded images are stored locally under `backend/uploads/` and served via FastAPI `StaticFiles` mounting.
+* **PDF Output**: Compiled reports are cached under `reports/pdf/` and cleaned periodically.
