@@ -59,7 +59,9 @@ const MakeoverPage = () => {
 
       try {
         const data = await generateMakeover({ recommendation_id: recommendationId });
-        setMakeoverUrl(`http://127.0.0.1:8000${data.makeover_url}`);
+        const finalUrl = `http://127.0.0.1:8000${data.makeover_url}`;
+        setMakeoverUrl(finalUrl);
+        recStore.setMakeoverUrl(finalUrl);
         setProgress(100);
         setStatusText('Makeover complete!');
         clearInterval(interval);

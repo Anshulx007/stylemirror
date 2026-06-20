@@ -16,6 +16,7 @@ export const useRecommendationStore = create(
       occasion: null,
       season: null,
       budget: null,
+      makeoverUrl: null,
       
       getRecommendations: async (payload) => {
         set({ loading: true });
@@ -31,6 +32,7 @@ export const useRecommendationStore = create(
             occasion: payload.occasion,
             season: payload.season,
             budget: payload.budget,
+            makeoverUrl: null, // Reset on new recommendations
           });
           return data;
         } catch (err) {
@@ -43,6 +45,8 @@ export const useRecommendationStore = create(
         }
       },
       
+      setMakeoverUrl: (url) => set({ makeoverUrl: url }),
+
       clearRecommendations: () => set({
         outfit: null,
         hairstyles: null,
@@ -53,6 +57,7 @@ export const useRecommendationStore = create(
         occasion: null,
         season: null,
         budget: null,
+        makeoverUrl: null,
       }),
     }),
     {
@@ -67,6 +72,7 @@ export const useRecommendationStore = create(
         occasion: state.occasion,
         season: state.season,
         budget: state.budget,
+        makeoverUrl: state.makeoverUrl,
       }),
     }
   )
